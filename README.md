@@ -1,51 +1,161 @@
-# Welcome to your Expo app 👋
+# ViaCarona App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Aplicativo de compartilhamento de caronas desenvolvido com React Native, Expo e TypeScript.
 
-## Get started
+## 🚀 Tecnologias
 
-1. Install dependencies
+- **React Native** - Framework para desenvolvimento mobile
+- **Expo** - Plataforma para desenvolvimento rápido
+- **TypeScript** - Tipagem estática
+- **NativeWind** - Estilização com Tailwind CSS
+- **Expo Router** - Navegação baseada em arquivos
+- **React Native Paper** - Componentes UI
 
-   ```bash
-   npm install
-   ```
+## 📁 Estrutura do Projeto
 
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+carona_app/
+├── src/
+│   ├── app/                    # Rotas do app (Expo Router)
+│   │   ├── (auth)/            # Grupo de rotas de autenticação
+│   │   │   ├── login.tsx
+│   │   │   └── register.tsx
+│   │   ├── main/              # Rotas principais do app
+│   │   │   ├── home.tsx
+│   │   │   └── profile.tsx
+│   │   ├── _layout.tsx        # Layout raiz
+│   │   ├── index.tsx          # Tela de boas-vindas
+│   │   └── global.css         # Estilos globais
+│   │
+│   ├── components/            # Componentes reutilizáveis
+│   │   ├── common/           # Componentes comuns
+│   │   │   ├── Card.tsx
+│   │   │   ├── Loading.tsx
+│   │   │   └── EmptyState.tsx
+│   │   ├── appButton.tsx     # Botão customizado
+│   │   └── appInput.tsx      # Input customizado
+│   │
+│   ├── features/             # Funcionalidades por contexto
+│   │   ├── auth/
+│   │   ├── home/
+│   │   ├── profile/
+│   │   └── rides/
+│   │
+│   ├── types/                # Definições de tipos TypeScript
+│   │   └── index.ts
+│   │
+│   ├── utils/                # Funções utilitárias
+│   │   ├── formatters.ts    # Formatação de dados
+│   │   └── validators.ts    # Validações
+│   │
+│   ├── services/             # Serviços e APIs
+│   │
+│   ├── hooks/                # Hooks customizados
+│   │
+│   └── constants/            # Constantes e temas
+│       └── theme.ts
+│
+├── assets/                   # Recursos estáticos
+│   └── images/
+│
+└── package.json
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## 🎯 Funcionalidades
 
-## Learn more
+### Implementadas
+- ✅ Tela de boas-vindas
+- ✅ Sistema de autenticação (Login/Registro)
+- ✅ Tela principal (Home) com lista de caronas
+- ✅ Tela de perfil do usuário
+- ✅ Componentes reutilizáveis (Button, Input, Card)
+- ✅ Validações de formulários
+- ✅ Navegação entre telas
 
-To learn more about developing your project with Expo, look at the following resources:
+### Em desenvolvimento
+- 🚧 Integração com backend/API
+- 🚧 Sistema de busca de caronas
+- 🚧 Criação de caronas
+- 🚧 Sistema de reservas
+- 🚧 Chat entre usuários
+- 🚧 Avaliações e reviews
+- 🚧 Integração com mapas
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## 🛠️ Instalação
 
-## Join the community
+1. Clone o repositório
+```bash
+git clone <url-do-repositorio>
+cd carona_app
+```
 
-Join our community of developers creating universal apps.
+2. Instale as dependências
+```bash
+npm install
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
-"# carona_app" 
+3. Inicie o projeto
+```bash
+npm start
+```
+
+4. Execute em um dispositivo/emulador
+```bash
+npm run android  # Para Android
+npm run ios      # Para iOS
+npm run web      # Para Web
+```
+
+## 📱 Telas
+
+### 1. Welcome (index.tsx)
+Tela inicial com opções para entrar ou criar conta.
+
+### 2. Login
+Tela de autenticação com validação de email e senha.
+
+### 3. Register
+Tela de cadastro com validação completa dos campos.
+
+### 4. Home
+Tela principal exibindo caronas disponíveis e ações rápidas.
+
+### 5. Profile
+Tela de perfil do usuário com menu de configurações.
+
+## 🎨 Componentes
+
+### AppButton
+Botão customizado com variantes (primary, secondary, outline) e suporte a loading.
+
+### AppInput
+Input customizado com label, ícones, validação e estados de foco.
+
+### Card
+Container flexível para exibição de conteúdo com variantes e suporte a ações.
+
+### Loading
+Componente de carregamento centralizado.
+
+### EmptyState
+Estado vazio para listas sem conteúdo.
+
+## 📝 Convenções
+
+- Use TypeScript para tipagem forte
+- Componentes em PascalCase
+- Arquivos em camelCase
+- Use NativeWind para estilização
+- Organize features por contexto
+- Mantenha componentes pequenos e reutilizáveis
+
+## 🤝 Contribuindo
+
+1. Crie uma branch para sua feature
+2. Commit suas mudanças
+3. Push para a branch
+4. Abra um Pull Request
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT.
