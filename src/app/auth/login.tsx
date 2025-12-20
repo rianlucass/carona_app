@@ -69,7 +69,7 @@ export default function Login() {
           // Credenciais inválidas
           setErrorModalMessage(data.message || "Email ou senha inválidos. Tente novamente.");
           setErrorModalVisible(true);
-        } else if (response.status === 403 || data.errorCode === "AUTH_001") {
+        } else if (response.status === 403 && data.errorCode === "AUTH_001") {
           // Email não verificado - redirecionar para verificação
           setErrorModalMessage(data.message || "Email não verificado. Redirecionando...");
           setErrorModalVisible(true);
@@ -79,6 +79,19 @@ export default function Login() {
             setErrorModalVisible(false);
             router.replace({
               pathname: "/auth/verify-email",
+              params: { email: email.trim() }
+            });
+          }, 2000);
+        } else if (response.status === 403 && data.errorCode === "USER_005") {
+          // Cadastro incompleto - redirecionar para completar perfil
+          setErrorModalMessage(data.message || "Cadastro incompleto. Redirecionando...");
+          setErrorModalVisible(true);
+          
+          // Redirecionar após 2 segundos
+          setTimeout(() => {
+            setErrorModalVisible(false);
+            router.replace({
+              pathname: "/auth/complete-profile",
               params: { email: email.trim() }
             });
           }, 2000);

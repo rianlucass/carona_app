@@ -17,6 +17,8 @@ export const ERROR_CODES = {
   USER_002: "Username já em uso",
   USER_003: "Telefone já em uso",
   USER_004: "CPF já em uso",
+  USER_005: "Cadastro incompleto",
+  USER_404: "Usuário não encontrado",
 
   // Validação (VALIDATION_XXX)
   VALIDATION_001: "Formato de data inválido",
@@ -43,6 +45,8 @@ export const ERROR_MESSAGES = {
   USER_002: "Este nome de usuário já existe. Escolha outro.",
   USER_003: "Este telefone já está cadastrado.",
   USER_004: "Este CPF já está cadastrado.",
+  USER_005: "Seu cadastro está incompleto. Complete seus dados para continuar.",
+  USER_404: "Usuário não encontrado. Verifique seu email ou cadastre-se.",
 
   // Validação
   VALIDATION_001: "Formato de data inválido. Use DD/MM/AAAA.",

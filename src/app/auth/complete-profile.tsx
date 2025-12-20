@@ -1,10 +1,11 @@
 import { completeProfile } from "@/src/api/services/(auth)/completeProfile";
 import { getErrorMessage } from "@/src/constants/errorCodes";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { AlertCircle, ArrowLeft, Calendar, Camera, CheckCircle2, MapPin, Phone, Users } from "lucide-react-native";
+import { AlertCircle, Calendar, Camera, CheckCircle2, Image as ImageIcon, MapPin, Phone, Users } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Animated, FlatList, Image, Platform, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, Animated, BackHandler, FlatList, Image, Platform, Text, TouchableOpacity, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { MaskedTextInput } from "react-native-mask-text";
 import { Button, Modal, Portal } from "react-native-paper";
@@ -39,7 +40,7 @@ export default function CompleteProfile() {
     city: "",
   });
 
-  // IBGE lists
+  // IBGE lista de estados e cidades
   const [statesList, setStatesList] = useState<{ id: number; sigla: string; nome: string }[]>([]);
   const [citiesList, setCitiesList] = useState<{ id: number; nome: string }[]>([]);
   const [loadingStates, setLoadingStates] = useState(false);
@@ -48,6 +49,7 @@ export default function CompleteProfile() {
   const [stateModalVisible, setStateModalVisible] = useState(false);
   const [cityModalVisible, setCityModalVisible] = useState(false);
   const [genderModalVisible, setGenderModalVisible] = useState(false);
+  const [photoOptionsModalVisible, setPhotoOptionsModalVisible] = useState(false);
 
   const genderOptions = [
     { label: "Masculino", value: "M" },
@@ -104,7 +106,7 @@ export default function CompleteProfile() {
   // Validar CPF
   const isValidCPF = (cpf: string): boolean => {
     cpf = cpf.replace(/\D/g, "");
-    
+
     if (cpf.length !== 11) return false;
     if (/^(\d)\1{10}$/.test(cpf)) return false; // CPF com todos os dígitos iguais
 
@@ -240,6 +242,16 @@ export default function CompleteProfile() {
     }
   };
 
+  // Bloquear botão de voltar do Android
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      // Retornar true impede a navegação de volta
+      return true;
+    });
+
+    return () => backHandler.remove();
+  }, []);
+
   // Carrega estados do IBGE na montagem
   useEffect(() => {
     const loadStates = async () => {
@@ -276,18 +288,77 @@ export default function CompleteProfile() {
 
   // Selecionar foto
   const handlePickImage = async () => {
-    // TODO: Implementar seleção de imagem com expo-image-picker
-    // Instalar: npx expo install expo-image-picker
-    setErrorModalMessage("Funcionalidade de foto será implementada em breve. Continue sem foto por enquanto.");
-    setErrorModalVisible(true);
+    try {
+      // Solicitar permissão para acessar a galeria
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permissão necessária',
+          'Precisamos de permissão para acessar suas fotos.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+
+      // Abrir a galeria de imagens
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        setPhoto({
+          uri: asset.uri,
+          type: 'image/jpeg',
+          name: `profile_${Date.now()}.jpg`,
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao selecionar imagem:', error);
+      setErrorModalMessage('Erro ao selecionar imagem. Tente novamente.');
+      setErrorModalVisible(true);
+    }
   };
 
   // Tirar foto
   const handleTakePhoto = async () => {
-    // TODO: Implementar câmera com expo-image-picker
-    // Instalar: npx expo install expo-image-picker
-    setErrorModalMessage("Funcionalidade de câmera será implementada em breve. Continue sem foto por enquanto.");
-    setErrorModalVisible(true);
+    try {
+      // Solicitar permissão para usar a câmera
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permissão necessária',
+          'Precisamos de permissão para usar a câmera.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+
+      // Abrir a câmera
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        setPhoto({
+          uri: asset.uri,
+          type: 'image/jpeg',
+          name: `profile_${Date.now()}.jpg`,
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao tirar foto:', error);
+      setErrorModalMessage('Erro ao tirar foto. Tente novamente.');
+      setErrorModalVisible(true);
+    }
   };
 
   // Submit
@@ -318,10 +389,10 @@ export default function CompleteProfile() {
     try {
       // Limpar CPF (remover pontos e traços)
       const cpfClean = formData.cpf.replace(/\D/g, "");
-      
+
       // Limpar telefone (remover formatação)
       const phoneClean = formData.phone.replace(/\D/g, "");
-      
+
       // Formatar data de nascimento para formato ISO (YYYY-MM-DD)
       const [day, month, year] = formData.birthDate.split("/");
       const birthDateISO = `${year}-${month}-${day}`;
@@ -351,18 +422,18 @@ export default function CompleteProfile() {
 
         // Mostrar modal de sucesso e redirecionar
         setSuccessModalVisible(true);
-        
+
         setTimeout(() => {
           router.replace("/home/home");
         }, 2000);
       }
     } catch (error: any) {
       setIsLoading(false);
-      
-      const errorMessage = error.errorCode 
+
+      const errorMessage = error.errorCode
         ? getErrorMessage(error.errorCode)
         : error.message || "Erro ao completar cadastro. Tente novamente.";
-      
+
       setErrorModalMessage(errorMessage);
       setErrorModalVisible(true);
       console.error("Erro ao completar perfil:", error);
@@ -373,13 +444,6 @@ export default function CompleteProfile() {
     <SafeAreaView className="flex-1 bg-black">
       {/* Header */}
       <View className="px-6 pt-4 pb-6">
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="w-10 h-10 items-center justify-center rounded-full bg-gray-900"
-        >
-          <ArrowLeft size={22} color="#fff" />
-        </TouchableOpacity>
-
         <Text className="text-white text-4xl font-bold mt-6 mb-2">
           Complete seu perfil
         </Text>
@@ -391,10 +455,15 @@ export default function CompleteProfile() {
       {/* Content */}
       <KeyboardAwareScrollView
         ref={scrollRef}
-        className="flex-1 bg-white rounded-t-[32px]"
-        contentContainerStyle={{ padding: 24 }}
+        enableOnAndroid={true}
+        enableAutomaticScroll={true}
+        extraScrollHeight={80}
+        extraHeight={120}
+        keyboardOpeningTime={0}
+        showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-        extraScrollHeight={100}
+        contentContainerStyle={{ paddingBottom: 60, paddingHorizontal: 24, paddingTop: 24 }}
+        className="bg-white rounded-t-[32px]"
       >
         {/* Foto de Perfil */}
         <View className="items-center mb-8">
@@ -417,26 +486,18 @@ export default function CompleteProfile() {
                 <Camera size={40} color="#9ca3af" />
               </View>
             )}
-            
+
             <TouchableOpacity
-              onPress={handlePickImage}
+              onPress={() => setPhotoOptionsModalVisible(true)}
               className="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-[#10b981] items-center justify-center border-4 border-white"
             >
               <Camera size={20} color="#fff" />
             </TouchableOpacity>
           </View>
-          
+
           <Text className="text-gray-500 text-sm mt-3">
             Adicionar foto (opcional)
           </Text>
-          
-          {!photo && (
-            <TouchableOpacity onPress={handleTakePhoto} className="mt-2">
-              <Text className="text-[#10b981] text-sm font-semibold">
-                Tirar foto agora
-              </Text>
-            </TouchableOpacity>
-          )}
         </View>
 
         {/* TELEFONE */}
@@ -628,6 +689,91 @@ export default function CompleteProfile() {
 
         <View className="h-10" />
       </KeyboardAwareScrollView>
+
+      {/* Photo Options Modal */}
+      <Portal>
+        <Modal 
+          visible={photoOptionsModalVisible} 
+          onDismiss={() => setPhotoOptionsModalVisible(false)} 
+          contentContainerStyle={{ 
+            backgroundColor: 'white', 
+            marginHorizontal: 20, 
+            borderRadius: 16, 
+            padding: 16 
+          }}
+        >
+          <Text style={{ fontSize: 18, fontWeight: '700', marginBottom: 16, textAlign: 'center' }}>
+            Escolha uma opção
+          </Text>
+          
+          <TouchableOpacity
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              paddingVertical: 16,
+              paddingHorizontal: 12,
+              borderBottomWidth: 1,
+              borderBottomColor: '#e5e7eb',
+            }}
+            onPress={() => {
+              setPhotoOptionsModalVisible(false);
+              setTimeout(() => handleTakePhoto(), 300);
+            }}
+          >
+            <View style={{ 
+              width: 40, 
+              height: 40, 
+              borderRadius: 20, 
+              backgroundColor: '#dcfce7', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              marginRight: 12,
+            }}>
+              <Camera size={20} color="#10b981" />
+            </View>
+            <Text style={{ fontSize: 16, fontWeight: '600' }}>Tirar foto</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              paddingVertical: 16,
+              paddingHorizontal: 12,
+              borderBottomWidth: 1,
+              borderBottomColor: '#e5e7eb',
+            }}
+            onPress={() => {
+              setPhotoOptionsModalVisible(false);
+              setTimeout(() => handlePickImage(), 300);
+            }}
+          >
+            <View style={{ 
+              width: 40, 
+              height: 40, 
+              borderRadius: 20, 
+              backgroundColor: '#dbeafe', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              marginRight: 12,
+            }}>
+              <ImageIcon size={20} color="#3b82f6" />
+            </View>
+            <Text style={{ fontSize: 16, fontWeight: '600' }}>Escolher da galeria</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={{
+              paddingVertical: 14,
+              alignItems: 'center',
+              marginTop: 8,
+            }}
+            onPress={() => setPhotoOptionsModalVisible(false)}
+          >
+            <Text style={{ fontSize: 16, color: '#6b7280', fontWeight: '600' }}>Cancelar</Text>
+          </TouchableOpacity>
+        </Modal>
+      </Portal>
 
       {/* State selector modal */}
       <Portal>

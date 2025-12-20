@@ -1,14 +1,16 @@
 import { API_ENDPOINTS } from "@/src/config/api";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { AlertCircle, ArrowLeft, Mail } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
-import { TextInput as RNTextInput, Text, TouchableOpacity, View } from "react-native";
+import { AlertCircle, Mail } from "lucide-react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { BackHandler, TextInput as RNTextInput, Text, TouchableOpacity, View } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { Button, Modal, Portal } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function VerifyEmail() {
   const router = useRouter();
   const { email } = useLocalSearchParams<{ email: string }>();
+  const scrollRef = useRef<KeyboardAwareScrollView>(null);
   
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [isLoading, setIsLoading] = useState(false);
@@ -19,6 +21,16 @@ export default function VerifyEmail() {
   const [resendAttempts, setResendAttempts] = useState(0);
   const MAX_RESEND_ATTEMPTS = 3;
   const [resendMessage, setResendMessage] = useState("");
+
+  // Bloquear botão de voltar do Android
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      // Retornar true impede a navegação de volta
+      return true;
+    });
+
+    return () => backHandler.remove();
+  }, []);
 
   // Timer countdown
   useEffect(() => {
@@ -96,7 +108,7 @@ export default function VerifyEmail() {
       if (data.success || response.ok) {
         // Sucesso - redireciona para completar perfil
         setIsLoading(false);
-        router.push({
+        router.replace({
           pathname: "/auth/complete-profile" as any,
           params: { email: email }
         });
@@ -197,13 +209,6 @@ export default function VerifyEmail() {
     <SafeAreaView className="flex-1 bg-black">
       {/* Header */}
       <View className="px-6 pt-4 pb-6">
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="w-10 h-10 items-center justify-center rounded-full bg-gray-900"
-        >
-          <ArrowLeft size={22} color="#fff" />
-        </TouchableOpacity>
-
         <Text className="text-white text-4xl font-bold mt-6 mb-2">
           Verifique seu email
         </Text>
@@ -214,7 +219,17 @@ export default function VerifyEmail() {
       </View>
 
       {/* Content */}
-      <View className="flex-1 bg-white rounded-t-[32px] px-6 pt-12">
+      <KeyboardAwareScrollView
+        ref={scrollRef}
+        enableOnAndroid={true}
+        enableAutomaticScroll={true}
+        extraScrollHeight={80}
+        extraHeight={120}
+        keyboardOpeningTime={0}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 50 }}
+        className="bg-white rounded-t-[32px] px-6 pt-12"
+      >
         {/* Ícone de Email */}
         <View className="items-center mb-8">
           <View className="w-20 h-20 rounded-full bg-[#10b981]/10 items-center justify-center">
@@ -298,7 +313,7 @@ export default function VerifyEmail() {
             <Text className="text-xs text-gray-500 mt-1">Tentativas: {resendAttempts}/{MAX_RESEND_ATTEMPTS}</Text>
           )}
         </View>
-      </View>
+      </KeyboardAwareScrollView>
 
       {/* Modal de Erro */}
       <Portal>
