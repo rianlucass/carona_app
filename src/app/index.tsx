@@ -1,12 +1,8 @@
-import { StatusBar } from "expo-status-bar";
-import { Text, View } from "react-native";
+import Welcome from "./welcome/welcome";
 
-export default function Welcome() {
+export default function index() {
 
   return (
-    <View className="flex-1">
-      <StatusBar style="dark" />
-      <Text>Welcome Screen</Text>
-    </View>
+      <Welcome />
   );
 }

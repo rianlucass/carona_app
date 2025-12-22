@@ -7,10 +7,10 @@ export const isValidEmail = (email: string): boolean => {
 };
 
 /**
- * Valida senha (mínimo 6 caracteres)
+ * Valida senha (mínimo 8 caracteres)
  */
 export const isValidPassword = (password: string): boolean => {
-  return password.length >= 6;
+  return password.length >= 8;
 };
 
 /**
