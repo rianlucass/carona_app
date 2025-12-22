@@ -15,4 +15,6 @@ export const API_ENDPOINTS = {
   verifyEmail: `${API_BASE_URL}/api/email-verification/verify`,
   resendCode: `${API_BASE_URL}/api/email-verification/resend-code`,
   completeProfile: (email: string) => `${API_BASE_URL}/auth/registerComplete/${encodeURIComponent(email)}`,
+  requestPasswordReset: `${API_BASE_URL}/auth/password/request-reset`,
+  resetPassword: `${API_BASE_URL}/auth/password/reset`,
 };

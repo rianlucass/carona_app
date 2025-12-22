@@ -142,8 +142,6 @@ export default function Register() {
         }
     };
 
-    
-
     // Validação completa e submit
     const handleRegister = async () => {
         // Validar todos os campos
