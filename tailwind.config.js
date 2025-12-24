@@ -13,7 +13,6 @@ module.exports = {
     "./src/navigation/**/*.{js,jsx,ts,tsx}",
     "./src/styles/**/*.{js,jsx,ts,tsx}"
   ],  
-  presets: [require("nativewind/preset")],  
   theme: {    
     extend: {
       colors: {
