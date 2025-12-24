@@ -1,12 +1,15 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { AlertCircle, ArrowLeft, Eye, EyeOff, Lock, Mail } from "lucide-react-native";
 import React, { useState } from "react";
-import { Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Image, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { Button, Modal, Portal } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { API_ENDPOINTS } from "../../config/api";
+import { GOOGLE_AUTH_CONFIG } from "../../config/google-auth";
 
 export default function Login() {
   const router = useRouter();
@@ -18,8 +21,117 @@ export default function Login() {
   const [errorModalVisible, setErrorModalVisible] = useState(false);
   const [errorModalMessage, setErrorModalMessage] = useState("");
 
+  // Configurar Google Sign-In
+  React.useEffect(() => {
+    GoogleSignin.configure({
+      webClientId: GOOGLE_AUTH_CONFIG.webClientId,
+      offlineAccess: false,
+    });
+  }, []);
+
   // Validação simples
   const isValidEmail = (email: string) => /\S+@\S+\.\S+/.test(email);
+
+  // Função para login com Google
+  const handleGoogleSignIn = async () => {
+    try {
+      setIsLoading(true);
+      await GoogleSignin.hasPlayServices();
+      const userInfo = await GoogleSignin.signIn();
+      
+      const tokens = await GoogleSignin.getTokens();
+      
+      if (tokens.idToken) {
+        await handleGoogleAuth(tokens.idToken);
+      } else {
+        setIsLoading(false);
+        setErrorModalMessage("Erro ao obter token do Google");
+        setErrorModalVisible(true);
+      }
+    } catch (error: any) {
+      setIsLoading(false);
+      
+      if (error.code === 'SIGN_IN_CANCELLED') {
+        // Usuário cancelou
+      } else if (error.code === 'IN_PROGRESS') {
+        setErrorModalMessage("Login já em andamento");
+        setErrorModalVisible(true);
+      } else if (error.code === 'PLAY_SERVICES_NOT_AVAILABLE') {
+        setErrorModalMessage("Google Play Services não disponível");
+        setErrorModalVisible(true);
+      } else {
+        setErrorModalMessage("Erro ao fazer login com Google");
+        setErrorModalVisible(true);
+      }
+    }
+  };
+
+  // Função para enviar idToken para API
+  const handleGoogleAuth = async (idToken: string) => {
+    try {
+      const response = await fetch(API_ENDPOINTS.googleAuth, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ idToken }),
+      });
+
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        const textResponse = await response.text();
+        setIsLoading(false);
+        setErrorModalMessage(`Erro no servidor (${response.status})`);
+        setErrorModalVisible(true);
+        return;
+      }
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setIsLoading(false);
+        setErrorModalMessage(data.message || "Erro ao autenticar");
+        setErrorModalVisible(true);
+        return;
+      }
+
+      // Sucesso - verificar se o perfil está completo
+      if (data && data.data && data.data.token) {
+        await AsyncStorage.setItem("@auth_token", data.data.token);
+        
+        // Verificar se o perfil está completo
+        if (data.data.profileComplete === false) {
+          setIsLoading(false);
+          setErrorModalMessage("Complete seu cadastro para continuar");
+          setErrorModalVisible(true);
+          
+          setTimeout(() => {
+            setErrorModalVisible(false);
+            router.replace({
+              pathname: "/auth/complete-profile",
+              params: { 
+                email: data.data?.email || "",
+                name: data.data?.name || "",
+                pictureUrl: data.data?.pictureUrl || ""
+              }
+            });
+          }, 2000);
+        } else {
+          // Perfil completo - vai direto para home
+          setIsLoading(false);
+          router.replace("/home/home");
+        }
+      } else {
+        setIsLoading(false);
+        setErrorModalMessage("Resposta inesperada do servidor");
+        setErrorModalVisible(true);
+      }
+    } catch (error) {
+      setIsLoading(false);
+      setErrorModalMessage("Erro de conexão");
+      setErrorModalVisible(true);
+    }
+  };
 
   const handleLogin = async () => {
     // Validações
@@ -130,6 +242,7 @@ export default function Login() {
 
   return (
     <SafeAreaView className="flex-1 bg-black">
+      <StatusBar style="light" />
       <KeyboardAwareScrollView
         className="flex-1"
         contentContainerStyle={{ flexGrow: 1 }}
@@ -232,6 +345,29 @@ export default function Login() {
           >
             Entrar
           </Button>
+
+          {/* Divisor */}
+          <View className="flex-row items-center mb-6">
+            <View className="flex-1 h-[1px] bg-gray-300" />
+            <Text className="px-4 text-gray-500 text-sm">ou</Text>
+            <View className="flex-1 h-[1px] bg-gray-300" />
+          </View>
+
+          {/* Botão Google */}
+          <TouchableOpacity
+            onPress={handleGoogleSignIn}
+            disabled={isLoading}
+            className="flex-row items-center justify-center border-2 border-gray-300 rounded-xl py-3 mb-6 bg-white"
+            style={{ opacity: isLoading ? 0.5 : 1 }}
+          >
+            <Image
+              source={{ uri: 'https://www.google.com/favicon.ico' }}
+              style={{ width: 20, height: 20, marginRight: 12 }}
+            />
+            <Text className="text-gray-700 font-semibold text-base">
+              Continuar com Google
+            </Text>
+          </TouchableOpacity>
 
           {/* Criar conta */}
           <View className="flex-row justify-center items-center">

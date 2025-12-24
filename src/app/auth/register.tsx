@@ -1,5 +1,6 @@
 import { API_ENDPOINTS } from "@/src/config/api";
 import { Link, useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { AlertCircle, ArrowLeft, CheckCircle2, Lock, Mail, User } from "lucide-react-native";
 import React, { useRef, useState } from "react";
 import { Animated, Text, TouchableOpacity, View } from "react-native";
@@ -257,6 +258,7 @@ export default function Register() {
 
     return (
         <SafeAreaView className="flex-1 bg-black">
+            <StatusBar style="light" />
             {/* HEADER */}
             <View className="px-6 pt-4 pb-6">
                 <TouchableOpacity

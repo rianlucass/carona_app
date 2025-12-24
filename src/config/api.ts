@@ -6,12 +6,13 @@
 // Para dispositivo físico: use o IP da sua máquina na rede local (ex: 192.168.1.100)
 // Para iOS Simulator: use localhost
 
-export const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || "http://localhost:8080";
+export const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || "http://10.0.2.2:8080";
 
 // URLs dos endpoints
 export const API_ENDPOINTS = {
   register: `${API_BASE_URL}/auth/register`,
   login: `${API_BASE_URL}/auth/login`,
+  googleAuth: `${API_BASE_URL}/auth/google`,
   verifyEmail: `${API_BASE_URL}/api/email-verification/verify`,
   resendCode: `${API_BASE_URL}/api/email-verification/resend-code`,
   completeProfile: (email: string) => `${API_BASE_URL}/auth/registerComplete/${encodeURIComponent(email)}`,
