@@ -3,6 +3,7 @@ import { getErrorMessage } from "@/src/constants/errorCodes";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { AlertCircle, Calendar, Camera, CheckCircle2, Image as ImageIcon, MapPin, Phone, Users } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Alert, Animated, BackHandler, FlatList, Image, Platform, Text, TouchableOpacity, View } from "react-native";
@@ -15,10 +16,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function CompleteProfile() {
   const router = useRouter();
-  const { email } = useLocalSearchParams<{ email: string }>();
+  const { email, name, pictureUrl } = useLocalSearchParams<{ email: string; name?: string; pictureUrl?: string }>();
   const scrollRef = useRef<KeyboardAwareScrollView>(null);
-
-  // Debug logs removed
 
   // Refs para animação de shake
   const shakeAnims = {
@@ -81,7 +80,11 @@ export default function CompleteProfile() {
     uri: string;
     type: string;
     name: string;
-  } | null>(null);
+  } | null>(pictureUrl ? {
+    uri: pictureUrl,
+    type: 'image/jpeg',
+    name: 'google_profile.jpg'
+  } : null);
 
   // Remover foto
   const handleRemovePhoto = () => {
@@ -397,7 +400,14 @@ export default function CompleteProfile() {
       const [day, month, year] = formData.birthDate.split("/");
       const birthDateISO = `${year}-${month}-${day}`;
 
-      // removed debug logs
+      // Verificar se a foto é do Google (URL externa) ou local
+      let photoToSend = photo;
+      
+      // Se a foto é a mesma URL do Google (não foi alterada), não enviar
+      // pois o backend já tem essa informação
+      if (photo && pictureUrl && photo.uri === pictureUrl) {
+        photoToSend = undefined; // Não enviar, backend já tem
+      }
 
       const response = await completeProfile({
         email: email!,
@@ -407,7 +417,7 @@ export default function CompleteProfile() {
         cpf: cpfClean,
         state: formData.state.toUpperCase(),
         city: formData.city,
-        photo: photo || undefined,
+        photo: photoToSend || undefined,
       });
 
       setIsLoading(false);
@@ -442,13 +452,14 @@ export default function CompleteProfile() {
 
   return (
     <SafeAreaView className="flex-1 bg-black">
+      <StatusBar style="light" />
       {/* Header */}
       <View className="px-6 pt-4 pb-6">
         <Text className="text-white text-4xl font-bold mt-6 mb-2">
           Complete seu perfil
         </Text>
         <Text className="text-gray-400 text-base">
-          Última etapa! Adicione seus dados para finalizar
+          {name ? `Olá, ${name.split(' ')[0]}! Complete seus dados para finalizar` : 'Última etapa! Adicione seus dados para finalizar'}
         </Text>
       </View>
 
@@ -465,6 +476,19 @@ export default function CompleteProfile() {
         contentContainerStyle={{ paddingBottom: 60, paddingHorizontal: 24, paddingTop: 24 }}
         className="bg-white rounded-t-[32px]"
       >
+        {/* Aviso sobre login com Google */}
+        {name && (
+          <View className="bg-blue-50 border border-blue-200 rounded-2xl p-4 mb-6 flex-row items-start">
+            <View className="bg-blue-500 rounded-full p-1 mr-3 mt-1">
+              <CheckCircle2 size={16} color="#fff" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-blue-900 font-semibold mb-1">Login com Google realizado!</Text>
+              <Text className="text-blue-700 text-sm">Complete os dados abaixo para finalizar seu cadastro.</Text>
+            </View>
+          </View>
+        )}
+
         {/* Foto de Perfil */}
         <View className="items-center mb-8">
           <View className="relative">
@@ -496,7 +520,7 @@ export default function CompleteProfile() {
           </View>
 
           <Text className="text-gray-500 text-sm mt-3">
-            Adicionar foto (opcional)
+            {pictureUrl && photo?.uri === pictureUrl ? 'Foto do Google (você pode alterá-la)' : 'Adicionar foto (opcional)'}
           </Text>
         </View>
 

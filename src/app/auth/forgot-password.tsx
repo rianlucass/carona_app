@@ -1,5 +1,6 @@
 import { requestPasswordReset } from "@/src/api/services/(auth)/passwordReset";
 import { useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { AlertCircle, ArrowLeft, CheckCircle2, Mail } from "lucide-react-native";
 import React, { useState } from "react";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
@@ -67,6 +68,7 @@ export default function ForgotPassword() {
 
   return (
     <SafeAreaView className="flex-1 bg-black">
+      <StatusBar style="light" />
       <KeyboardAwareScrollView
         className="flex-1"
         contentContainerStyle={{ flexGrow: 1 }}

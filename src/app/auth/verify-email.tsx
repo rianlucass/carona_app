@@ -1,5 +1,6 @@
 import { API_ENDPOINTS } from "@/src/config/api";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { AlertCircle, Mail } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import { BackHandler, TextInput as RNTextInput, Text, TouchableOpacity, View } from "react-native";
@@ -207,6 +208,7 @@ export default function VerifyEmail() {
 
   return (
     <SafeAreaView className="flex-1 bg-black">
+      <StatusBar style="light" />
       {/* Header */}
       <View className="px-6 pt-4 pb-6">
         <Text className="text-white text-4xl font-bold mt-6 mb-2">
